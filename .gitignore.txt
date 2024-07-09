@@ -1,0 +1,2 @@
+# Ignorar o arquivo .env para não expor chaves de API e URIs sensíveis
+.env
