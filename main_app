@@ -1,0 +1,162 @@
+Estrutura de Diretórios
+bash
+Copiar código
+extremamente_aesthetic_project/
+│
+├── .env
+├── .gitignore
+├── main.py
+├── requirements.txt
+└── README.md
+Conteúdo dos Arquivos
+1. .env
+env
+Copiar código
+OPENAI_API_KEY="sua chaveopenai"
+MONGO_URI=your_mongo_uri  # Substitua 'your_mongo_uri' pela URI real do seu MongoDB
+2. .gitignore
+gitignore
+Copiar código
+# Ignorar o arquivo .env para não expor chaves de API e URIs sensíveis
+.env
+3. main.py
+python
+Copiar código
+
+# Importação das bibliotecas necessárias
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import openai
+from pymongo import MongoClient
+from dotenv import load_dotenv
+import os
+
+# Carregar variáveis de ambiente do arquivo .env
+# Este arquivo contém a chave da API do OpenAI e a URI do MongoDB
+load_dotenv()
+
+# Configuração da chave da API do OpenAI
+# A chave é carregada a partir das variáveis de ambiente
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Conexão com o MongoDB
+# A URI do MongoDB é carregada a partir das variáveis de ambiente
+client = MongoClient(os.getenv("MONGO_URI"))
+db = client.extremamente_aesthetic  # Nome do banco de dados
+collection = db.texts  # Nome da coleção
+
+# Inicialização do aplicativo FastAPI
+app = FastAPI()
+
+# Definição do modelo de dados para a entrada da API
+# Este modelo espera um campo 'prompt' do tipo string
+class TextPrompt(BaseModel):
+    prompt: str
+
+# Definição da rota POST para gerar texto
+# A rota '/generate_text/' aceita um prompt e retorna um texto gerado pela IA
+@app.post("/generate_text/")
+async def generate_text(prompt: TextPrompt):
+    try:
+        # Chamada para a API do OpenAI para gerar um texto baseado no prompt fornecido
+        response = openai.Completion.create(
+            model="text-davinci-004",  # Modelo utilizado
+            prompt=prompt.prompt,  # Prompt fornecido pelo usuário
+            max_tokens=500  # Número máximo de tokens no texto gerado
+        )
+        text = response.choices[0].text.strip()  # Texto gerado pela IA
+
+        # Armazenamento do prompt e do texto gerado no MongoDB
+        result = collection.insert_one({"prompt": prompt.prompt, "text": text})
+
+        # Retorno do texto gerado e do ID do documento no MongoDB
+        return {"text": text, "id": str(result.inserted_id)}
+    except Exception as e:
+        # Tratamento de erros e retorno de uma mensagem de erro
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Execução do servidor
+# Este bloco é executado apenas se o script for executado diretamente
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+4. requirements.txt
+text
+Copiar código
+fastapi==0.68.0
+pydantic==1.8.2
+openai==0.10.2
+pymongo==3.12.0
+python-dotenv==0.19.0
+uvicorn==0.15.0
+5. README.md
+markdown
+Copiar código
+# Extremamente Aesthetic Project
+
+
+## Como Executar o Projeto
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/seu-usuario/extremamente_aesthetic_project.git
+   cd extremamente_aesthetic_project
+Crie e ative um ambiente virtual (opcional, mas recomendado):
+
+bash
+Copiar código
+python -m venv venv
+source venv/bin/activate  # No Windows, use `venv\Scripts\activate`
+Instale as dependências:
+
+bash
+Copiar código
+pip install -r requirements.txt
+Configure as variáveis de ambiente:
+Crie um arquivo .env na raiz do projeto com o seguinte conteúdo:
+
+env
+Copiar código
+OPENAI_API_KEY="suachaveopenai"
+MONGO_URI=your_mongo_uri  # Substitua 'your_mongo_uri' pela URI real do seu MongoDB
+Execute o aplicativo:
+
+bash
+Copiar código
+uvicorn main:app --reload
+O servidor estará disponível em http://127.0.0.1:8000.
+
+Endpoints Disponíveis
+POST /generate_text/: Gera um texto baseado em um prompt fornecido pelo usuário.
+Corpo da requisição (JSON):
+json
+Copiar código
+{
+  "prompt": "Seu prompt aqui"
+}
+Exemplo de Uso
+Utilize o curl ou uma ferramenta como o Postman para enviar requisições ao endpoint:
+
+bash
+Copiar código
+curl -X POST "http://127.0.0.1:8000/generate_text/" -H "Content-Type: application/json" -d '{"prompt": "Escreva um ensaio sobre a importância da educação."}'
+csharp
+Copiar código
+
+### Subir o Projeto para o GitHub
+
+1. **Inicialize o repositório Git**:
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+Adicione o repositório remoto:
+
+bash
+Copiar código
+git remote add origin https://github.com/seu-usuario/extremamente_aesthetic_project.git
+Empurre para o GitHub:
+
+bash
+Copiar código
+git push -u origin master
+Este é o guia completo de como o projeto deve ser estruturado, incluindo a criação e configuração dos arquivos principais. Ao seguir estes passos, seu projeto estará pronto para ser versionado e compartilhado no GitHub.
